@@ -1,0 +1,40 @@
+- name: Provisioning
+  hosts: all
+  become: true
+  vars:
+    nginx_port: 8080
+
+  tasks:
+
+  - name: install nginx
+    ansible.builtin.yum:
+      name: nginx
+      state: latest
+    notify: start nginx
+
+  - name: copy nginx config
+    ansible.builtin.copy:
+      src: nginx.conf
+      dest: /etc/nginx/nginx.conf
+    notify: restart nginx 
+  
+  - name: copy server config
+    ansible.builtin.template:
+      src: server.conf.j2
+      dest: /etc/nginx/conf.d/server.conf
+    notify: restart nginx
+
+  - name: enable nginx
+    ansible.builtin.service:
+      name: nginx
+      enabled: true
+
+  handlers:
+  - name: start nginx
+    ansible.builtin.service:
+      name: nginx
+      state: started
+  - name: restart nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
